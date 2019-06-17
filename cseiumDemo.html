@@ -117,14 +117,69 @@
 				// viewer.camera.lookAt(Cesium.Cartesian3.fromDegrees(-122.2058, 46.1955, 1000.0), new Cesium.Cartesian3(5000.0,
 				// 	5000.0, 5000.0));
 				// viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
-
-				viewer.camera.lookAt(Cesium.Cartesian3.fromDegrees(104.06,30.64,349990), new Cesium.Cartesian3(3000.06,3000.64,3400));
-				viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
-				viewer.camera.setView({
-				   orientation:{
-						heading:Cesium.Math.toRadians(360,0),
+// 
+// 				viewer.camera.lookAt(Cesium.Cartesian3.fromDegrees(104.06,30.64,349990), new Cesium.Cartesian3(3000.06,3000.64,3400));
+// 				viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+// 				viewer.camera.setView({
+// 				   orientation:{
+// 						heading:Cesium.Math.toRadians(360,0),
+// 					}
+// 				});
+				var lonIncrement = 0.00025;
+				var initialLon = 104.06;
+				var lat = 30.64;
+				var height = 10.0;
+				function createModel(url, x, y, height) {
+					var position = Cesium.Cartesian3.fromDegrees(x, y, height);
+					viewer.entities.add({
+						name: url,
+						position: position,
+						model: {
+							uri: url
+						}
+					});
+				}
+				
+				var target = Cesium.Cartesian3.fromDegrees(initialLon, lat, height);
+				var offset = new Cesium.Cartesian3(-70.06,-68.64,6.0908)
+				viewer.scene.camera.lookAt(target, offset);
+				// crate model on map
+				createModel('./static/modelData/CesiumMilkTruck.gltf', initialLon-lonIncrement, lat, height-7.5)
+				
+				//Sandcastle_Begin
+				Cesium.Math.setRandomNumberSeed(1234);
+				
+				var entities = viewer.entities;
+				// 纯色 椭球
+				entities.add({
+					position : target,
+					ellipsoid : {
+						radii : new Cesium.Cartesian3(5.0, 5.0, 5.0),
+						material : Cesium.Color.fromRandom({alpha : 1.0})
 					}
 				});
+				// 四面小墙
+				entities.add({
+					wall: {
+						// positions: Cesium.Cartesian3.fromDegreesArrayHeights([104.06,30.638, 17.0,
+						// 	104.045, 30.64, 17.0, // 上
+						// 	104.01, 30.63, 17.0, // 左
+						// 	104.045, 30.60, 17.0,
+						// 	104.06, 30.638, 17.0 // 下
+						// ]),
+							positions: Cesium.Cartesian3.fromDegreesArrayHeights([104.06,30.6391, 17.0,
+							104.055, 30.64, 17.0, // 上
+							104.015, 30.63, 17.0, // 左
+							104.055, 30.60, 17.0,
+							104.06, 30.6391, 17.0 // 下
+						]),						
+						material: new Cesium.CheckerboardMaterialProperty({
+							repeat: new Cesium.Cartesian2(20.0, 6.0)
+						})
+					}
+				});				
+				//viewer.zoomTo(viewer.entities);
+				
 				//Sandcastle_End
 				Sandcastle.finishedLoading();
 			}
