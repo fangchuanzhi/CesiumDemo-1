@@ -42,7 +42,7 @@
 		</div>
 
 		<script id="cesium_sandcastle_script">
-			function startup(Cesium,ECesium) {
+			function startup(Cesium,DrawAssist) {
 				'use strict';
 				//Sandcastle_Begin
 				var activeShapePoints = [];
@@ -68,7 +68,7 @@
 				 //禁止双击zoom
 				viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 				// inint draw helper
-				var drawTool = new ECesium.Tools(viewer);
+				var drawTool = new DrawAssist.Tools(viewer);
 
 				var options = [{
 					text: 'Draw Point',
@@ -129,9 +129,9 @@
 				Sandcastle.finishedLoading();
 			}
 			if (typeof Cesium !== 'undefined') {
-				startup(Cesium,ECesium);
+				startup(Cesium,DrawAssist);
 			} else if (typeof require === 'function') {
-				require(['Cesium','ECesium'], startup);
+				require(['Cesium','DrawAssist'], startup);
 			}
 		</script>
 	</body>

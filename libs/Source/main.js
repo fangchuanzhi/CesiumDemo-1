@@ -3,14 +3,14 @@
 // This is meant for use with the Almond loader.
 require([
         'Cesium',
-		'../js/createHelper'
+		'DrawAssist'
     ], function(
-        Cesium,ECesium) {
+        Cesium,DrawAssist) {
     'use strict';
     /*global self,module*/
     if (typeof window !== 'undefined') {
         window.Cesium = Cesium;
-		window.ECesium = ECesium;
+		window.DrawAssist = DrawAssist;
     } else if (typeof self !== 'undefined') {
         self.Cesium = Cesium;
     } else if(typeof module !== 'undefined') {

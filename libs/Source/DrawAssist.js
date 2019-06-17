@@ -1,16 +1,16 @@
 define(['Cesium'], function(Cesium) {
-	const ECesium = {
+	const DrawAssist = {
 		version: '0.1',
-		description: '自定义cesium组件',
-		copyright: '2018-enbo'
+		description: 'cesium辅助类',
+		copyright: '2019-06-17'
 	};
 
-	ECesium.Tools = function(viewer, callback) {
+	DrawAssist.Tools = function(viewer, callback) {
 		this.viewer = viewer;
 		this.init();
 	};
 
-	ECesium.Tools.prototype.init = function(back) {
+	DrawAssist.Tools.prototype.init = function(back) {
 		//初始化事件
 		const viewer = this.viewer;
 		const scene = viewer.scene;
@@ -19,13 +19,13 @@ define(['Cesium'], function(Cesium) {
 		this.geodesic = new Cesium.EllipsoidGeodesic();
 		this.handler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
 
-		this.dataSource = new Cesium.CustomDataSource('test1');
+		this.dataSource = new Cesium.CustomDataSource('tempComponent');
 		viewer.dataSources.add(this.dataSource);
 		console.log(viewer.dataSources.indexOf(this.dataSource));
 	};
 
 
-	ECesium.Tools.prototype.draw = function(type) {
+	DrawAssist.Tools.prototype.draw = function(type) {
 		if (!this.viewer) return console.error('this.viewer 未定义');
 		this.deactivate();
 		this.drawingMode = type;
@@ -46,7 +46,11 @@ define(['Cesium'], function(Cesium) {
 		}
 	};
 
-	ECesium.Tools.prototype.DrawPoint = function(callback) {
+	/**
+	 * 描点
+	 * @param {Object} callback
+	 */
+	DrawAssist.Tools.prototype.DrawPoint = function(callback) {
 		const viewer = this.viewer;
 		const this_ = this;
 		this.drawingMode = "point";
@@ -55,14 +59,14 @@ define(['Cesium'], function(Cesium) {
 			const mapPosition = this_.getMapPoint(ray);
 			if (!mapPosition) return;
 			this_.dataSource.entities.add({
-				id: '云台' + Math.random(),
-				name: '林火监测点',
+				id: 'drawPoints' + Math.random(),
+				name: '描点begin',
 				position: Cesium.Cartesian3.fromDegrees(mapPosition.x, mapPosition.y, mapPosition.z),
 				point: new Cesium.PointGraphics({
 					color: Cesium.Color.SKYBLUE,
-					pixelSize: 30,
+					pixelSize: 10,
 					outlineColor: Cesium.Color.YELLOW,
-					outlineWidth: 3,
+					outlineWidth: 2,
 					heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
 				}),
 				description: '<img style="height: 200px;" src="static/imgs/marker_red.png">'
@@ -70,7 +74,11 @@ define(['Cesium'], function(Cesium) {
 		}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 	};
 	
-	ECesium.Tools.prototype.DrawGraphics = function(callback) {
+	/**
+	 * 根据不同了类型，绘制不同矢量图层
+	 * @param {Object} callback
+	 */
+	DrawAssist.Tools.prototype.DrawGraphics = function(callback) {
 		const viewer = this.viewer;
 		const this_ = this;
 		let activeShapePoints = [];
@@ -123,8 +131,12 @@ define(['Cesium'], function(Cesium) {
 			activeShapePoints = [];
 		}
 	};
-
-	ECesium.Tools.prototype.getMapPoint = function(ray) {
+	
+	/**
+	 * 获取地图上的 经纬度，高度 （x,y,z）
+	 * @param {Object} ray
+	 */
+	DrawAssist.Tools.prototype.getMapPoint = function(ray) {
 		const viewer = this.viewer;
 		const cartesian = viewer.scene.globe.pick(ray, viewer.scene);
 		if (!cartesian) {
@@ -142,7 +154,7 @@ define(['Cesium'], function(Cesium) {
 		};
 	};
 
-	ECesium.Tools.prototype.createPoint = function(worldPosition) {
+	DrawAssist.Tools.prototype.createPoint = function(worldPosition) {
 		return this.dataSource.entities.add({
 			position: worldPosition,
 			point: {
@@ -153,7 +165,12 @@ define(['Cesium'], function(Cesium) {
 		});
 	};
 
-	ECesium.Tools.prototype.drawShape = function(positionData,activeShapePoints) {
+	/**
+	 * 执行线，面，圆，矩形的绘制操作
+	 * @param {Object} positionData
+	 * @param {Object} activeShapePoints
+	 */
+	DrawAssist.Tools.prototype.drawShape = function(positionData,activeShapePoints) {
 		switch (this.drawingMode) {
 			case this.DRAW_TYPE.PolyLine:
 				return this.dataSource.entities.add({
@@ -218,20 +235,25 @@ define(['Cesium'], function(Cesium) {
 		}
 	};
 
-	ECesium.Tools.prototype.measure = function(type) {
+	/**
+	 * 根据类型开始绘制测量矢量图层
+	 * @param {Object} type
+	 */
+	DrawAssist.Tools.prototype.measure = function(type) {
 		this.deactivate();
 		this.measureMode = type;
 		this.DrawMeasureGraphics();
 	};
-	ECesium.Tools.prototype.measureForArea = function(type) {
+	DrawAssist.Tools.prototype.measureForArea = function(type) {
 		this.deactivate();
 		this.measureMode = type;
 		this.DrawMeasureGraphicsArea();
 	};
 	
-	
-	
-	ECesium.Tools.prototype.DrawMeasureGraphicsArea = function() {
+	/**
+	 * 实现测量面积功能
+	 */
+	DrawAssist.Tools.prototype.DrawMeasureGraphicsArea = function() {
 				var tooltip = document.getElementById("toolTip");
 					var isDraw = false;
 					var polygonPath = [];
@@ -361,21 +383,6 @@ define(['Cesium'], function(Cesium) {
 						this_.measureForArea('MeasureTerrainArea');
 					}, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 					
-				this.handler.setInputAction(function() {
-				//	terminateShape();
-				}, Cesium.ScreenSpaceEventType.RIGHT_CLICK);	
-				function terminateShape() {
-					polygonPath.pop();
-					AllEnities.pop();
-					this_.dataSource.entities.remove(floatingPoint);
-					this_.dataSource.entities.remove(activeShape);
-					floatingPoint = undefined;
-					activeShape = undefined;
-					AllEnities = [];
-					polygonPath=[];
-				}
-
-
 					var CreatePolygon = (function() {
 						function _(positions, cesium) {
 							if (!Cesium.defined(positions)) {
@@ -432,8 +439,7 @@ define(['Cesium'], function(Cesium) {
 	};
 	
 	
-	
-	ECesium.Tools.prototype.DrawMeasureGraphics = function() {
+	DrawAssist.Tools.prototype.DrawMeasureGraphics = function() {
 		const viewer = this.viewer;
 		const this_ = this;
 		let activeShapePoints = [];
@@ -445,7 +451,6 @@ define(['Cesium'], function(Cesium) {
 			if (!Cesium.Entity.supportsPolylinesOnTerrain(viewer.scene)) {
 				return console.log('This browser does not support polylines on terrain.');
 			}
-					
 			const ray = viewer.camera.getPickRay(event.position);
 			const earthPosition = viewer.scene.globe.pick(ray, viewer.scene);
 			if (Cesium.defined(earthPosition)) {
@@ -472,12 +477,10 @@ define(['Cesium'], function(Cesium) {
 					}, false);
 					activeShape = this_.drawMeasureShape(dynamicPositions);
 				}
-				
 				if (activeShapePoints.length > 1 && this_.measureMode === this_.MEASURE_TYPE.MEASURE_DISTANCE) {
 					measureDistance += floatDistance;
 					this_.createLabel(earthPosition, (measureDistance / 1000).toFixed(2) + ' km');
 				}
-
 				activeShapePoints.push(earthPosition);
 				this_.createMeasurePoint(earthPosition);
 			}
@@ -512,7 +515,12 @@ define(['Cesium'], function(Cesium) {
 		}
 	};
 	
-	ECesium.Tools.prototype.drawMeasureShape = function(positionData,callback) {
+	/**
+	 * 根据类型绘制 测量图形
+	 * @param {Object} positionData
+	 * @param {Object} callback
+	 */
+	DrawAssist.Tools.prototype.drawMeasureShape = function(positionData,callback) {
 		console.log("draw shape");
 		switch (this.measureMode) {
 			case this.MEASURE_TYPE.MEASURE_DISTANCE:
@@ -538,7 +546,7 @@ define(['Cesium'], function(Cesium) {
 		}
 	};
 
-	ECesium.Tools.prototype.getLatestLength = function(activeShapePoints) {
+	DrawAssist.Tools.prototype.getLatestLength = function(activeShapePoints) {
 		const length = activeShapePoints.length;
 		const endPoint = activeShapePoints[length - 1];
 		const startPoint = activeShapePoints[length - 2];
@@ -548,7 +556,12 @@ define(['Cesium'], function(Cesium) {
 		return Math.round(this.geodesic.surfaceDistance);
 	};
 
-	ECesium.Tools.prototype.createMeasurePoint = function(worldPosition, callback) {
+	/**
+	 * 绘制测量中的点图形
+	 * @param {Object} worldPosition
+	 * @param {Object} callback
+	 */
+	DrawAssist.Tools.prototype.createMeasurePoint = function(worldPosition, callback) {
 		return this.dataSource.entities.add({
 			position: worldPosition,
 			point: {
@@ -562,7 +575,12 @@ define(['Cesium'], function(Cesium) {
 		});
 	};
 
-	ECesium.Tools.prototype.createLabel = function(worldPosition, text) {
+	/**
+	 * 绘制测量后的提示框
+	 * @param {Object} worldPosition
+	 * @param {Object} text
+	 */
+	DrawAssist.Tools.prototype.createLabel = function(worldPosition, text) {
 		return this.dataSource.entities.add({
 			position: worldPosition,
 			label: {
@@ -578,8 +596,10 @@ define(['Cesium'], function(Cesium) {
 		});
 	};
 
-
-	ECesium.Tools.prototype.deactivate = function() {
+	/**
+	 * 清除已经注册的事件
+	 */
+	DrawAssist.Tools.prototype.deactivate = function() {
 		if (this.handler) {
 			this.handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
 			this.handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
@@ -588,8 +608,11 @@ define(['Cesium'], function(Cesium) {
 
 		this.drawingMode = null;
 	};
-
-	ECesium.Tools.prototype.DRAW_TYPE = {
+	
+	/**
+	 * 定义绘制类型
+	 */
+	DrawAssist.Tools.prototype.DRAW_TYPE = {
 		Point: 'Point',
 		PolyLine: 'PolyLine',
 		Polygon: 'Polygon',
@@ -597,12 +620,13 @@ define(['Cesium'], function(Cesium) {
 		Rectangle: 'Rectangle'
 	};
 
-	ECesium.Tools.prototype.MEASURE_TYPE = {
+	/**
+	 * 定义测距的类型
+	 */
+	DrawAssist.Tools.prototype.MEASURE_TYPE = {
 		MEASURE_DISTANCE: 'MeasureTerrainDistance',
 		MEASURE_AREA: 'MeasureTerrainArea'
 	};
-
 	
-	
-	return ECesium;
+	return DrawAssist;
 });
