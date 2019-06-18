@@ -216,6 +216,21 @@
 						})
 					}
 				});
+
+				// 实心 3d 长方形
+				entities.add({
+					rectangle: {
+						coordinates: Cesium.Rectangle.fromDegrees(104.0602,30.641, 104.0605, 30.642),
+						extrudedHeight: 5.0,
+						outline: true,
+						outlineColor: Cesium.Color.WHITE,
+						outlineWidth: 4,
+						stRotation: Cesium.Math.toRadians(30),
+						material: Cesium.Color.fromRandom({
+							alpha: 1.0
+						})
+					}
+				});				
 				//viewer.zoomTo(viewer.entities);
 
 				//Sandcastle_End
