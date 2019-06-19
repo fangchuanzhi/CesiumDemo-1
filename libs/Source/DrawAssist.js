@@ -74,11 +74,14 @@ define(['Cesium'], function(Cesium) {
 		}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 	};
 	
+	// 记录 在绘制类型为 polygon 时记录点击区域的坐标
+	let clickPositionRecord ;
 	/**
 	 * 根据不同了类型，绘制不同矢量图层
 	 * @param {Object} callback
 	 */
 	DrawAssist.Tools.prototype.DrawGraphics = function(callback) {
+
 		const viewer = this.viewer;
 		const this_ = this;
 		let activeShapePoints = [];
@@ -87,12 +90,27 @@ define(['Cesium'], function(Cesium) {
 			if (!Cesium.Entity.supportsPolylinesOnTerrain(viewer.scene)) {
 				return console.log('This browser does not support polylines on terrain.');
 			}
+
 			const ray = viewer.camera.getPickRay(event.position);
 			const earthPosition = viewer.scene.globe.pick(ray, viewer.scene);
+			// 用当前点击坐标 比对前一次
+			if(this_.DRAW_TYPE.Polygon === this_.drawingMode){
+				if(clickPositionRecord){
+					if(Object.is(clickPositionRecord.x,earthPosition.x)){
+						clickPositionRecord = earthPosition ;
+						return
+					}
+					clickPositionRecord = earthPosition ;
+				}else{
+					clickPositionRecord = earthPosition;
+				}
+			}
+			
 			if (Cesium.defined(earthPosition)) {
 				if (activeShapePoints.length === 0) {
 					floatingPoint = this_.createPoint(earthPosition);
 					activeShapePoints.push(earthPosition);
+									
 					const dynamicPositions = new Cesium.CallbackProperty(function() {
 						return activeShapePoints;
 					}, false);
@@ -129,7 +147,7 @@ define(['Cesium'], function(Cesium) {
 			floatingPoint = undefined;
 			activeShape = undefined;
 			activeShapePoints = [];
-		}
+		}		
 	};
 	
 	/**
@@ -215,7 +233,7 @@ define(['Cesium'], function(Cesium) {
 			case this.DRAW_TYPE.Rectangle:
 				//当positionData为数组时绘制最终图，如果为function则绘制动态图
 				var arr = typeof positionData.getValue === 'function' ? positionData.getValue(0) : positionData;
-				if(arr.length<=0){
+				if(arr.length<2){
 					return
 				}
 				return this.dataSource.entities.add({
@@ -512,7 +530,7 @@ define(['Cesium'], function(Cesium) {
 			activeShape = undefined;
 			activeShapePoints = [];
 			measureDistance = 0;
-		}
+		}	
 	};
 	
 	/**
@@ -605,7 +623,6 @@ define(['Cesium'], function(Cesium) {
 			this.handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 			this.handler.removeInputAction(Cesium.ScreenSpaceEventType.RIGHT_CLICK);	
 		}
-
 		this.drawingMode = null;
 	};
 	
