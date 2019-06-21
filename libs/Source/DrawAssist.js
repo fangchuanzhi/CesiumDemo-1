@@ -134,6 +134,12 @@ define(['Cesium'], function(Cesium) {
 				}
 			}
 		}, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+		
+		// remove the track and entity on the default behavior in Cesium
+		// reference site https://webiks.com/remove-default-double-click-behavior-in-cesium/
+		this.handler.setInputAction(function(movement) {
+			viewer.trackedEntity = undefined;
+		}, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
 		this.handler.setInputAction(function() {
 			terminateShape();

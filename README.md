@@ -37,3 +37,11 @@ I have been looking for a long time, the final solution is as follows
 				}
 			}
 ```
+
+is to add an additional event handler to our own ScreenSpaceEventHandler, which will set the Viewer’s trackedEntity to undefined
+
+```
+		this.handler.setInputAction(function(movement) {
+			viewer.trackedEntity = undefined;
+		}, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+```
